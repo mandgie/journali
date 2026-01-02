@@ -2,6 +2,13 @@
 
 All notable changes to Journali will be documented in this file.
 
+## [0.1.1] - 2026-01-02
+
+### Fixed
+- Calendar date selection showing wrong day due to timezone conversion bug
+  - Clicking on January 1st previously showed December 31st in the panel
+  - Fixed `formatDateKey` to use local date methods instead of UTC-based `toISOString()`
+
 ## [0.1.0] - 2026-01-01
 
 ### Added
