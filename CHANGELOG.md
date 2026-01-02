@@ -2,6 +2,23 @@
 
 All notable changes to Journali will be documented in this file.
 
+## [0.2.0] - 2026-01-02
+
+### Added
+- Supabase integration for cloud persistence
+  - Journal entries now sync to cloud and persist across sessions
+  - User authentication with email/password (sign up, sign in, sign out)
+  - Row Level Security ensures users only see their own entries
+- Auth UI with login/signup form matching app aesthetic
+- Sign out button in header
+- Loading spinner during auth state resolution
+
+### Technical
+- Supabase project setup with migrations
+- `journal_entries` table with RLS policies
+- AuthContext for global auth state management
+- `useJournalEntries` hook with optimistic updates and Supabase sync
+
 ## [0.1.1] - 2026-01-02
 
 ### Fixed

@@ -1,5 +1,8 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import './App.css'
+import { useAuth } from './lib/AuthContext'
+import { useJournalEntries } from './lib/useJournalEntries'
+import { Auth } from './components/Auth'
 
 // Types
 interface JournalEntry {
@@ -126,8 +129,9 @@ const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Se
 const DAY_NUMBERS = Array.from({ length: 31 }, (_, i) => i + 1)
 
 function App() {
+  const { user, loading: authLoading, signOut } = useAuth()
   const currentYear = new Date().getFullYear()
-  const [entries, setEntries] = useState<Record<string, JournalEntry>>({})
+  const { entries, updateEntry } = useJournalEntries(currentYear)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [panelOpen, setPanelOpen] = useState(false)
   const [tooltip, setTooltip] = useState<TooltipState>({
@@ -170,23 +174,11 @@ function App() {
     setTimeout(() => setSelectedDate(null), 400)
   }, [])
 
-  // Handle entry change
+  // Handle entry change with debounce
   const handleEntryChange = useCallback((content: string) => {
     if (!selectedDate) return
-
-    if (content.trim() === '') {
-      setEntries(prev => {
-        const next = { ...prev }
-        delete next[selectedDate]
-        return next
-      })
-    } else {
-      setEntries(prev => ({
-        ...prev,
-        [selectedDate]: { date: selectedDate, content },
-      }))
-    }
-  }, [selectedDate])
+    updateEntry(selectedDate, content)
+  }, [selectedDate, updateEntry])
 
   // Handle tooltip
   const handleMouseEnter = useCallback((e: React.MouseEvent, day: DayData) => {
@@ -223,6 +215,20 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [panelOpen, handleClosePanel])
 
+  // Show loading state
+  if (authLoading) {
+    return (
+      <div className="app app--loading">
+        <div className="loading-spinner" />
+      </div>
+    )
+  }
+
+  // Show auth if not logged in
+  if (!user) {
+    return <Auth />
+  }
+
   // Get selected date info
   const selectedDateObj = selectedDate ? new Date(selectedDate + 'T00:00:00') : null
   const selectedEntry = selectedDate ? entries[selectedDate] : null
@@ -232,7 +238,16 @@ function App() {
       {/* Header */}
       <header className="header">
         <h1 className="header__title">Journali</h1>
-        <span className="header__year">{currentYear}</span>
+        <div className="header__right">
+          <span className="header__year">{currentYear}</span>
+          <button className="header__signout" onClick={signOut} title="Sign out">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+          </button>
+        </div>
       </header>
 
       {/* Main Content */}
